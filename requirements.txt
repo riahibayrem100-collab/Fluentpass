@@ -1,13 +1,9 @@
 flask
 flask-cors
 bcrypt
-
-
-
-
 gunicorn
-
-
-
-gunicorn
+flask-compress
+flask-caching
+psutil
+requests
 
