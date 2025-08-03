@@ -3,14 +3,18 @@ services:
     name: fluentpass
     env: python
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "python src/main.py"
+    startCommand: "gunicorn --bind 0.0.0.0:$PORT --workers 2 --threads 2 --timeout 120 --keep-alive 2 --max-requests 1000 --max-requests-jitter 100 --preload src.main:app"
     plan: free
-    healthCheckPath: /
+    healthCheckPath: /api/health
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
       - key: FLASK_ENV
         value: production
+      - key: PYTHONUNBUFFERED
+        value: 1
+      - key: WEB_CONCURRENCY
+        value: 2
     domains:
       - fluentpass.onrender.com
 

@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 
 def init_database():
-    """Initialize the FluentPass database with all required tables."""
+    """Initialize the FluentPass database with all required tables and performance optimizations."""
     
     # Create database directory in /tmp for Render deployment
     db_dir = "."
@@ -13,9 +13,18 @@ def init_database():
     # Database file path
     db_path = os.path.join(db_dir, 'fluentpass.db')
     
-    # Connect to database
+    # Connect to database with performance optimizations
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
+    
+    # Enable WAL mode for better concurrent access
+    cursor.execute("PRAGMA journal_mode=WAL;")
+    
+    # Optimize SQLite for performance
+    cursor.execute("PRAGMA synchronous=NORMAL;")
+    cursor.execute("PRAGMA cache_size=10000;")
+    cursor.execute("PRAGMA temp_store=MEMORY;")
+    cursor.execute("PRAGMA mmap_size=268435456;")  # 256MB
     
     # Create users table
     cursor.execute("""
@@ -37,6 +46,12 @@ def init_database():
         )
     """)
     
+    # Create indexes for users table
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_active ON users(is_active);")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_last_login ON users(last_login);")
+
     # Create user_sessions table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS user_sessions (
